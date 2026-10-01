@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "RV32I: Compile current C (-O0)",
+      "type": "shell",
+      "command": "311-compile -O0 ${file}",
+      "problemMatcher": []
+    },
+    {
+      "label": "RV32I: Compile current C (-O2)",
+      "type": "shell",
+      "command": "311-compile -O2 ${file}",
+      "problemMatcher": []
+    },
+    {
+      "label": "RV32I: Assemble current file",
+      "type": "shell",
+      "command": "311-assemble ${file}",
+      "problemMatcher": []
+    }
+  ]
+}

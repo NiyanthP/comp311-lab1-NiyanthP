@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+opt="-O0"
+if [[ $# -ge 1 && "$1" == -O* ]]; then
+  opt="$1"
+  shift
+fi
+
+if [[ $# -ne 1 || "$1" != *.c ]]; then
+  echo "Usage: 311-compile [-O0|-O1|-O2|-O3|-Os] file.c"
+  echo "Note: optimization flags use a capital letter O."
+  echo "      -O0 = capital O + zero"
+  echo "      -O2 = capital O + two"
+  exit 2
+fi
+
+case "$opt" in
+  -O0|-O1|-O2|-O3|-Os) ;;
+  *) echo "Unsupported optimization level: $opt"; exit 2 ;;
+esac
+
+src="$1"
+[[ -f "$src" ]] || { echo "File not found: $src"; exit 1; }
+
+arch="${COMP311_ARCH:-rv32i}"
+abi="${COMP311_ABI:-ilp32}"
+mkdir -p build
+
+stem="$(basename "$src" .c)"
+tag="${opt#-}"
+asm="build/${stem}_${tag}.s"
+obj="build/${stem}_${tag}.o"
+dump="build/${stem}_${tag}.dump"
+
+common=(
+  "-march=${arch}"
+  "-mabi=${abi}"
+  "-ffreestanding"
+  "-fno-builtin"
+  "-fno-pic"
+  "-fno-asynchronous-unwind-tables"
+  "-fno-unwind-tables"
+)
+
+riscv64-unknown-elf-gcc "${common[@]}" "$opt" -S "$src" -o "$asm"
+riscv64-unknown-elf-gcc "${common[@]}" "$opt" -c "$src" -o "$obj"
+riscv64-unknown-elf-objdump -dr "$obj" > "$dump"
+
+echo "Target: ${arch} / ${abi}"
+echo "Optimization: ${opt}  (capital O)"
+echo "Assembly:    $asm"
+echo "Object file: $obj"
+echo "Disassembly: $dump"

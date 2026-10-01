@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+required=(
+  "answers.md"
+  "starter/part1.s"
+  "starter/array_indexed_two_at_a_time.c"
+)
+
+status=0
+
+echo "COMP 311 submission check"
+echo
+
+for f in "${required[@]}"; do
+  if [[ -f "$f" ]]; then
+    echo "FOUND:   $f"
+  else
+    echo "MISSING: $f"
+    status=1
+  fi
+done
+
+echo
+
+if [[ -f "starter/part1.s" ]] && grep -q "TODO: implement" "starter/part1.s"; then
+  echo "UNFINISHED: starter/part1.s still contains the starter TODO."
+  status=1
+fi
+
+if [[ -f "answers.md" ]]; then
+  placeholders="$(grep -Ec '\[YOUR ANSWER HERE\]|TBD' answers.md || true)"
+  if [[ "$placeholders" -gt 0 ]]; then
+    echo "UNFINISHED: answers.md still contains ${placeholders} template placeholder(s)."
+    status=1
+  fi
+fi
+
+echo
+
+if [[ "$status" -eq 0 ]]; then
+  echo "Submission check passed."
+  echo "Remember to commit and push your latest changes."
+else
+  echo "Submission check found items to fix before submitting."
+fi
+
+exit "$status"

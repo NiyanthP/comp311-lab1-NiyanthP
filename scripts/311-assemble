@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: 311-assemble file.s"
+  exit 2
+fi
+
+src="$1"
+[[ -f "$src" ]] || { echo "File not found: $src"; exit 1; }
+
+case "$src" in
+  *.s|*.S) ;;
+  *) echo "Expected a .s or .S file"; exit 2 ;;
+esac
+
+arch="${COMP311_ARCH:-rv32i}"
+mkdir -p build
+stem="$(basename "${src%.*}")"
+obj="build/${stem}.o"
+dump="build/${stem}.dump"
+
+riscv64-unknown-elf-as "-march=${arch}" "$src" -o "$obj"
+riscv64-unknown-elf-objdump -dr "$obj" > "$dump"
+
+echo "Target: ${arch}"
+echo "Object file: $obj"
+echo "Disassembly: $dump"

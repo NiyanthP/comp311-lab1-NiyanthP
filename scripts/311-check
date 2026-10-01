@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "COMP 311 RV32I environment"
+echo "Architecture: ${COMP311_ARCH:-rv32i}"
+echo "ABI:          ${COMP311_ABI:-ilp32}"
+echo
+riscv64-unknown-elf-gcc --version | head -n 1
+riscv64-unknown-elf-as --version | head -n 1
+riscv64-unknown-elf-objdump --version | head -n 1
+echo
+
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+cat > "$tmpdir/check.c" <<'EOF'
+int add_three(int x) { return x + 3; }
+EOF
+
+riscv64-unknown-elf-gcc \
+  -march="${COMP311_ARCH:-rv32i}" \
+  -mabi="${COMP311_ABI:-ilp32}" \
+  -ffreestanding -fno-builtin \
+  -O0 -S "$tmpdir/check.c" -o "$tmpdir/check.s"
+
+echo "Success: generated RV32I assembly."
